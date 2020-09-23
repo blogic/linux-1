@@ -1,0 +1,6 @@
+#
+# Realtek RTL83xx SoCs
+#
+platform-$(CONFIG_RTL83XX) += rtl83xx/
+cflags-$(CONFIG_RTL83XX)   += -I$(srctree)/arch/mips/include/asm/mach-rtl83xx/
+load-$(CONFIG_RTL83XX)     += 0xffffffff80000000

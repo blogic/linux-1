@@ -62,3 +62,9 @@ config SPI_INTEL_SPI_PLATFORM
 
 	  To compile this driver as a module, choose M here: the module
 	  will be called intel-spi-platform.
+
+config SPI_REALTEK_RTL83XX
+	tristate "Realtek RTL83xx SPI flash controller"
+	help
+	  This enables support for the SPI flash controller in the Realtek
+	  RTL83xx series SoCs.

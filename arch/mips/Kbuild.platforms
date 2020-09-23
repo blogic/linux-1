@@ -24,6 +24,7 @@ platform-$(CONFIG_PIC32MZDA)		+= pic32/
 platform-$(CONFIG_MACH_PISTACHIO)	+= pistachio/
 platform-$(CONFIG_SOC_PNX833X)		+= pnx833x/
 platform-$(CONFIG_RALINK)		+= ralink/
+platform-$(CONFIG_RTL83XX)		+= rtl83xx/
 platform-$(CONFIG_MIKROTIK_RB532)	+= rb532/
 platform-$(CONFIG_SGI_IP22)		+= sgi-ip22/
 platform-$(CONFIG_SGI_IP27)		+= sgi-ip27/
