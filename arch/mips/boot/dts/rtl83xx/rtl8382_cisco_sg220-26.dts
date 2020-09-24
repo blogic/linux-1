@@ -1,9 +1,10 @@
 /dts-v1/;
 
-#include "rtl83xx.dtsi"
-
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/gpio/gpio.h>
+
+#include "rtl83xx.dtsi"
+#include "rtl8382.dtsi"
 
 / {
 	model = "Cisco SG220-26";
