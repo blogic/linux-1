@@ -52,25 +52,6 @@ static void rtl83xx_halt(void)
 	while(1);
 }
 
-static void __init rtl83xx_setup(void)
-{
-	unsigned int val;
-
-	_machine_restart = rtl83xx_restart;
-	_machine_halt = rtl83xx_halt;
-
-	/* Setup System LED. Bit 15 (14 for RTL8390) then allows to toggle it */
-	if (soc_info.family == RTL8380_FAMILY_ID) {
-		val = rtl83xx_r32(RTL838X_LED_GLB_CTRL);
-		val |= 3 <<16;
-		rtl83xx_w32(val, RTL838X_LED_GLB_CTRL);
-	} else {
-		val = rtl83xx_r32(RTL838X_LED_GLB_CTRL);
-		val |= 3 <<15;
-		rtl83xx_w32(val, RTL838X_LED_GLB_CTRL);
-	}
-}
-
 void __init plat_mem_setup(void)
 {
 	void *dtb;
@@ -86,13 +67,10 @@ void __init plat_mem_setup(void)
 	else
 		panic("no dtb found");
 
-	/*
-	 * Load the devicetree. This causes the chosen node to be
-	 * parsed resulting in our memory appearing
-	 */
 	__dt_setup_arch(dtb);
 
-	rtl83xx_setup();
+	_machine_restart = rtl83xx_restart;
+	_machine_halt = rtl83xx_halt;
 }
 
 static void __init rtl83xx_init_uart1(void)
