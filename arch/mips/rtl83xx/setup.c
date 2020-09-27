@@ -25,36 +25,25 @@
 #include <mach-rtl83xx.h>
 #include <rtl83xx-regs.h>
 
-extern void rtl83xx_init_uart0(void);
-extern void rtl83xx_init_uart1(void);
+
 extern struct rtl83xx_soc_info soc_info;
 
-u32 pll_reset_value;
 
 static void rtl83xx_restart(char *command)
 {
-	u32 pll = rtl83xx_r32(RTL838X_PLL_CML_CTRL);
-	 /* SoC reset vector (in flash memory): on RTL839x platform preferred way to reset */
-	void (*f)(void) = (void *) 0xbfc00000;
+	void (*reset_8390)(void) = (void *) 0xbfc00000;
 
-	pr_info("System restart.\n");
-	if (soc_info.family == RTL8390_FAMILY_ID) {
-		f();
+	if (soc_info.family == RTL8380_FAMILY_ID) {
+		/* Reset Global Control1 Register */
+		rtl83xx_w32(1, RTL838X_RST_GLB_CTRL_1);
+	} else if (soc_info.family == RTL8390_FAMILY_ID) {
+		/* Call SoC reset vector in flash memory */
+		reset_8390();
 		/* If calling reset vector fails, reset entire chip */
 		rtl83xx_w32(0xFFFFFFFF, RTL839X_RST_GLB_CTRL);
 		/* If this fails, halt the CPU */
 		while (1);
 	}
-
-	pr_info("PLL control register: %x, applying reset value %x\n",
-		pll, pll_reset_value);
-	rtl83xx_w32(3, RTL838X_INT_RW_CTRL);
-	rtl83xx_w32(pll_reset_value, RTL838X_PLL_CML_CTRL);
-	rtl83xx_w32(0, RTL838X_INT_RW_CTRL);
-
-	pr_info("Resetting RTL838X SoC\n");
-	/* Reset Global Control1 Register */
-	rtl83xx_w32(1, RTL838X_RST_GLB_CTRL_1);
 }
 
 static void rtl83xx_halt(void)
@@ -67,7 +56,6 @@ static void __init rtl83xx_setup(void)
 {
 	unsigned int val;
 
-	pr_info("Registering _machine_restart\n");
 	_machine_restart = rtl83xx_restart;
 	_machine_halt = rtl83xx_halt;
 
@@ -107,6 +95,19 @@ void __init plat_mem_setup(void)
 	rtl83xx_setup();
 }
 
+static void __init rtl83xx_init_uart1(void)
+{
+	u32 value;
+
+	if (soc_info.family == RTL8380_FAMILY_ID) {
+		rtl83xx_w32(RTL838X_GMII_INTF_SEL_UART1, RTL838X_GMII_INTF_SEL);
+	} else if (soc_info.family == RTL8390_FAMILY_ID) {
+		value = rtl83xx_r32(RTL839X_MAC_IF_CTRL);
+		value &= ~(RTL839X_MAC_IF_CTRL_JTAG);
+		value |= RTL839X_MAC_IF_CTRL_UART;
+		rtl83xx_w32(value, RTL839X_MAC_IF_CTRL);
+	}
+}
 
 void __init plat_time_init(void)
 {
@@ -127,16 +128,11 @@ void __init plat_time_init(void)
 
 	mips_hpt_frequency = freq / 2;
 
-	pll_reset_value = rtl83xx_r32(RTL838X_PLL_CML_CTRL);
-	pr_info("PLL control register: %x\n", pll_reset_value);
-
-#ifdef CONFIG_SERIAL_8250
-	rtl83xx_init_uart0();
 	np = of_find_node_by_path("poe-uart");
 	if (np) {
+		/* If specified and not disabled, can only be uart1 */
 		if (!of_property_read_string(np, "status", &s))
 			if (!strcmp(s, "okay"))
 				rtl83xx_init_uart1();
 	}
-#endif
 }

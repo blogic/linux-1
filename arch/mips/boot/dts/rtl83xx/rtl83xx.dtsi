@@ -36,9 +36,10 @@
 	};
 
 	soc {
-		ranges = <0x0 0xb8000000 0x10000>;
+		compatible = "simple-bus";
 		#address-cells = <1>;
 		#size-cells = <1>;
+		ranges = <0x0 0xb8000000 0x10000>;
 
 		spiflash: spi@1200 {
 			compatible = "realtek,rtl83xx-spiflash";
@@ -86,9 +87,10 @@
 	};
 
 	swcore {
-		ranges = <0x0 0xbb000000 0x10000>;
+		compatible = "simple-bus";
 		#address-cells = <1>;
 		#size-cells = <1>;
+		ranges = <0x0 0xbb000000 0x10000>;
 
 		ethernet0: ethernet@a300 {
 			status = "okay";

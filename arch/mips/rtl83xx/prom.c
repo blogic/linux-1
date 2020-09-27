@@ -27,55 +27,6 @@ extern char arcs_cmdline[];
 extern const char __appended_dtb;
 
 
-void prom_console_init(void)
-{
-	/* UART 16550A is initialized by the bootloader */
-}
-
-#ifdef CONFIG_EARLY_PRINTK
-#define RTL83XX_UART0_BASE	((volatile void *)(0xb8002000UL))
-#define UART0_THR		(RTL83XX_UART0_BASE + 0x000)
-#define UART0_FCR		(RTL83XX_UART0_BASE + 0x008)
-#define FCR_TXRST		0x04
-#define FCR_RTRG		0xC0
-#define UART0_LSR		(RTL83XX_UART0_BASE + 0x014)
-#define LSR_THRE		0x20
-#define TXCHAR_AVAIL		0x00
-
-void unregister_prom_console(void)
-{
-
-}
-
-void disable_early_printk(void)
-{
-
-}
-
-void prom_putchar(char c)
-{
-	unsigned int retry = 0;
-
-	do {
-		// TODO: check if this stupid delay loop is necessary
-		if (retry++ >= 30000) {
-			/* Reset Tx FIFO */
-			rtl83xx_w8(FCR_TXRST | FCR_RTRG, UART0_FCR);
-			return;
-		}
-	} while ((rtl83xx_r8(UART0_LSR) & LSR_THRE) == TXCHAR_AVAIL);
-
-	/* Send Character */
-	rtl83xx_w8(c, UART0_THR);
-}
-
-char prom_getchar(void)
-{
-	return '\0';
-}
-#endif /* CONFIG_EARLY_PRINTK */
-
-
 const char *get_system_type(void)
 {
 	return soc_info.name;
@@ -119,6 +70,8 @@ static void __init prom_init_cmdline(void)
 void __init prom_init(void)
 {
 	uint32_t model;
+
+	setup_8250_early_printk_port(0xb8002000, 2, 0);
 
 	model = rtl83xx_r32(RTL838X_MODEL_NAME_INFO) >> 16;
 	if (model != 0x8330 && model != 0x8332 && model != 0x8380 &&

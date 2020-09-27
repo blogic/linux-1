@@ -15,6 +15,10 @@
 	};
 };
 
+&uart0 {
+	status = "okay";
+};
+
 &spiflash {
 	status = "okay";
 

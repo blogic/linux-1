@@ -1,6 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-only
-
-
 #include <linux/device.h>
 #include <linux/init.h>
 #include <linux/module.h>
@@ -344,7 +342,7 @@ static const struct spi_nor_controller_ops rtl83xx_controller_ops = {
 	.erase = rtl83xx_erase,
 };
 
-/* Vendor SDK's "OTTO838x_SPIF_CTRLR_ADDR_MODE", used for RTL833x and RTL838x */
+/* Vendor BSP's "OTTO838x_SPIF_CTRLR_ADDR_MODE", used for RTL833x and RTL838x */
 static int rtl838x_get_addr_mode(void)
 {
 	int addrmode = 3;
