@@ -12,7 +12,7 @@
 #include <linux/mtd/spi-nor.h>
 
 #include <mach-rtl83xx.h>
-#include <rtl83xx-regs.h>
+#include "rtl83xx-spiflash.h"
 
 extern struct rtl83xx_soc_info soc_info;
 

@@ -17,7 +17,7 @@
 		};
 	};
 
-	memory@0 {
+	memory {
 		device_type = "memory";
 		reg = <0x0 0x8000000>;
 	};
@@ -25,14 +25,6 @@
 	aliases {
 		serial0 = &uart0;
 		serial1 = &uart1;
-		poe-uart = &uart1;
-	};
-
-	cpuintc: cpuintc {
-		#address-cells = <0>;
-		#interrupt-cells = <1>;
-		interrupt-controller;
-		compatible = "rtl83xx,icu";
 	};
 
 	soc {
@@ -41,7 +33,7 @@
 		#size-cells = <1>;
 		ranges = <0x0 0xb8000000 0x10000>;
 
-		spiflash: spi@1200 {
+		spiflash: spi {
 			compatible = "realtek,rtl83xx-spiflash";
 			reg = <0x1200 0x100>;
 
@@ -84,6 +76,13 @@
 
 			status = "disabled";
 		};
+
+		cpuintc: cpuintc {
+			compatible = "rtl83xx,icu";
+			interrupt-controller;
+			#interrupt-cells = <1>;
+			reg = <0x3000 0x20>;
+		};
 	};
 
 	swcore {
@@ -92,7 +91,7 @@
 		#size-cells = <1>;
 		ranges = <0x0 0xbb000000 0x10000>;
 
-		ethernet0: ethernet@a300 {
+		ethernet0: ethernet {
 			status = "okay";
 			compatible = "realtek,rtl83xx-eth";
 			reg = <0xa300 0x100>;

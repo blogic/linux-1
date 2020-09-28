@@ -10,6 +10,10 @@
 	model = "Cisco SG220-26";
 	compatible = "cisco,sg220-26", "realtek,rtl83xx-soc";
 
+	aliases {
+		poe-uart = &uart1;
+	};
+
 	chosen {
 		bootargs = "console=ttyS0,9600 mem=128M loglevel=8";
 	};

@@ -1,5 +1,4 @@
 //  SPDX-License-Identifier: GPL-2.0-only
-
 #ifndef _RTL83XX_ETH_H
 #define _RTL83XX_ETH_H
 

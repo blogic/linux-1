@@ -1,5 +1,5 @@
-#ifndef RTL83XX_IOREMAP_H_
-#define RTL83XX_IOREMAP_H_
+#ifndef _RTL83XX_IOREMAP_H_
+#define _RTL83XX_IOREMAP_H_
 
 static inline int is_rtl83xx_internal_registers(phys_addr_t offset)
 {
@@ -25,4 +25,4 @@ static inline int plat_iounmap(const volatile void __iomem *addr)
 	return is_rtl83xx_internal_registers((unsigned long)addr);
 }
 
-#endif /* RTL83XX_IOREMAP_H_ */
+#endif /* _RTL83XX_IOREMAP_H_ */
