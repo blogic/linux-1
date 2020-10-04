@@ -30,6 +30,8 @@
 		compatible = "jedec,spi-nor";
 		spi-max-frequency = <10000000>;
 		reg = <0>;
+		m25p,fast-read;
+		broken-flash-reset;
 
 		partitions {
 			compatible = "fixed-partitions";
@@ -75,7 +77,6 @@
 			runtime2: partition@6 {
 				label = "runtime2";
 				reg = <0x12d0000 0xd30000>;
-				read-only;
 			};
 		};
 	};
