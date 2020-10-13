@@ -8,26 +8,22 @@
  *
  */
 
-#include <linux/kernel.h>
-#include <linux/init.h>
-#include <linux/interrupt.h>
 #include <linux/irqchip.h>
-#include <linux/of_irq.h>
-#include <linux/of_address.h>
 #include <linux/spinlock.h>
-
+#include <linux/of_address.h>
 #include <asm/irq_cpu.h>
-#include <asm/mipsregs.h>
 #include <asm/cevt-r4k.h>
+
 #include <mach-rtl83xx.h>
 #include "irq.h"
+
+
+#define REG(x)		(rtl83xx_ictl_base + x)
 
 extern struct rtl83xx_soc_info soc_info;
 
 static DEFINE_RAW_SPINLOCK(irq_lock);
 static void __iomem *rtl83xx_ictl_base;
-
-#define REG(x)		(rtl83xx_ictl_base + x)
 
 
 static void rtl83xx_ictl_enable_irq(struct irq_data *i)
@@ -136,7 +132,6 @@ int __init icu_of_init(struct device_node *node, struct device_node *parent)
 	if (!rtl83xx_ictl_base)
 		return -EIO;
 
-	/* Setup all external HW irqs */
 	for (i = 8; i < RTL83XX_IRQ_ICTL_NUM; i++) {
 		irq_domain_associate(domain, i, i);
 		irq_set_chip_and_handler(RTL83XX_IRQ_ICTL_BASE + i,
@@ -167,7 +162,7 @@ int __init icu_of_init(struct device_node *node, struct device_node *parent)
 	/* Disable all cascaded interrupts */
 	rtl83xx_w32(0, REG(RTL83XX_ICTL_GIMR));
 
-	/* Set up interrupt routing scheme */
+	/* Set up interrupt routing */
 	rtl83xx_w32(RTL83XX_IRR0_SETTING, REG(RTL83XX_IRR0));
 	rtl83xx_w32(RTL83XX_IRR1_SETTING, REG(RTL83XX_IRR1));
 	rtl83xx_w32(RTL83XX_IRR2_SETTING, REG(RTL83XX_IRR2));
@@ -176,6 +171,7 @@ int __init icu_of_init(struct device_node *node, struct device_node *parent)
 	/* Clear timer interrupt */
 	write_c0_compare(0);
 
+	/* Enable all CPU interrupts */
 	write_c0_status(read_c0_status() | ST0_IM);
 
 	/* Enable timer0 and uart0 interrupts */

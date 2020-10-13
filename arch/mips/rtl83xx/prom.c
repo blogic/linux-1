@@ -9,22 +9,19 @@
  *
  */
 
-#include <linux/init.h>
-#include <linux/kernel.h>
-#include <linux/string.h>
+#include <linux/of.h>
 #include <linux/of_fdt.h>
 #include <linux/libfdt.h>
-#include <asm/bootinfo.h>
-#include <asm/addrspace.h>
-#include <asm/page.h>
-#include <asm/cpu.h>
+#include <asm/prom.h>
+
 #include <mach-rtl83xx.h>
 
-struct rtl83xx_soc_info soc_info;
-const void *fdt;
 
 extern char arcs_cmdline[];
 extern const char __appended_dtb;
+
+struct rtl83xx_soc_info soc_info;
+const void *fdt;
 
 
 const char *get_system_type(void)
@@ -37,14 +34,40 @@ void __init prom_free_prom_memory(void)
 	return;
 }
 
+static void __init rtl83xx_init_uart1(void)
+{
+	u32 value;
+
+	if (soc_info.family == RTL8380_FAMILY_ID) {
+		rtl83xx_w32(RTL838X_GMII_INTF_SEL_UART1, RTL838X_GMII_INTF_SEL);
+	} else if (soc_info.family == RTL8390_FAMILY_ID) {
+		value = rtl83xx_r32(RTL839X_MAC_IF_CTRL);
+		value &= ~(RTL839X_MAC_IF_CTRL_JTAG);
+		value |= RTL839X_MAC_IF_CTRL_UART;
+		rtl83xx_w32(value, RTL839X_MAC_IF_CTRL);
+	}
+}
+
 void __init device_tree_init(void)
 {
+	struct device_node *np;
+	const char *s;
+
 	if (!fdt_check_header(&__appended_dtb)) {
 		fdt = &__appended_dtb;
 		pr_info("Using appended Device Tree.\n");
 	}
 	initial_boot_params = (void *)fdt;
 	unflatten_and_copy_device_tree();
+
+	np = of_find_node_by_path("poe-uart");
+	if (np) {
+		/* If specified and not disabled, can only be uart1 */
+		if (!of_property_read_string(np, "status", &s))
+			if (!strcmp(s, "okay"))
+				rtl83xx_init_uart1();
+		of_node_put(np);
+	}
 }
 
 static void __init prom_init_cmdline(void)
@@ -66,11 +89,12 @@ static void __init prom_init_cmdline(void)
 	pr_info("Kernel command line: %s\n", arcs_cmdline);
 }
 
-/* Do basic initialization */
 void __init prom_init(void)
 {
+	void *dtb;
 	uint32_t model;
 
+	/* uart0 */
 	setup_8250_early_printk_port(0xb8002000, 2, 0);
 
 	model = rtl83xx_r32(RTL838X_MODEL_NAME_INFO) >> 16;
@@ -120,5 +144,14 @@ void __init prom_init(void)
 	}
 	pr_info("SoC Type: %s\n", soc_info.name);
 	prom_init_cmdline();
+
+	if (fw_passed_dtb)
+		dtb = (void *)fw_passed_dtb;
+	else if (__dtb_start != __dtb_end)
+		dtb = (void *)__dtb_start;
+	else
+		panic("no dtb found");
+
+	__dt_setup_arch(dtb);
 }
 

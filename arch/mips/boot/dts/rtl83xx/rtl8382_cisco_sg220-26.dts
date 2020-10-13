@@ -23,6 +23,10 @@
 	status = "okay";
 };
 
+&uart1 {
+	status = "okay";
+};
+
 &spiflash {
 	status = "okay";
 

@@ -3,6 +3,7 @@
  * Copyright (C) 2006-2012 Tony Wu (tonywu@realtek.com)
  * Copyright (C) 2020 B. Koblitz
  */
+
 #ifndef _MACH_RTL838X_H_
 #define _MACH_RTL838X_H_
 
