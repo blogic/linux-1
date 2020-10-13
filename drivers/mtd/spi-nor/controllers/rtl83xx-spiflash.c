@@ -1,18 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include <linux/device.h>
-#include <linux/init.h>
+
 #include <linux/module.h>
-#include <linux/mutex.h>
-#include <linux/of.h>
-#include <linux/of_device.h>
 #include <linux/platform_device.h>
-#include <linux/slab.h>
-#include <linux/mtd/mtd.h>
-#include <linux/mtd/partitions.h>
 #include <linux/mtd/spi-nor.h>
 
-#include <mach-rtl83xx.h>
 #include "rtl83xx-spiflash.h"
+
 
 extern struct rtl83xx_soc_info soc_info;
 
@@ -23,7 +16,7 @@ static int rtl83xx_nor_write_reg(struct spi_nor *nor, u8 opcode, const u8 *buf, 
 static inline u32 rtl83xx_read(struct rtl83xx_nor *rtnor, u32 reg, bool wait)
 {
 	if (wait)
-		while (!(__raw_readl(rtnor->base + RTL8XXX_SPI_SFCSR) & RTL8XXX_SPI_SFCSR_RDY))
+		while (!(__raw_readl(rtnor->base + RTL83XX_SPI_SFCSR) & RTL83XX_SPI_SFCSR_RDY))
 			;
 	return __raw_readl(rtnor->base + reg);
 }
@@ -31,7 +24,7 @@ static inline u32 rtl83xx_read(struct rtl83xx_nor *rtnor, u32 reg, bool wait)
 static inline void rtl83xx_write(struct rtl83xx_nor *rtnor, u32 reg, u32 value, bool wait)
 {
 	if (wait)
-		while (!(__raw_readl(rtnor->base + RTL8XXX_SPI_SFCSR) & RTL8XXX_SPI_SFCSR_RDY))
+		while (!(__raw_readl(rtnor->base + RTL83XX_SPI_SFCSR) & RTL83XX_SPI_SFCSR_RDY))
 			;
 	__raw_writel(value, rtnor->base + reg);
 }
@@ -45,14 +38,14 @@ static uint32_t spi_prep(struct rtl83xx_nor *rtnor)
 	uint32_t init, ret;
 
 	/* Deactivate CS0 and CS1 first */
-	init = (RTL8XXX_SPI_SFCSR_CSB0 | RTL8XXX_SPI_SFCSR_CSB1) & RTL8XXX_SPI_SFCSR_LEN_MASK;
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, init, true);
+	init = (RTL83XX_SPI_SFCSR_CSB0 | RTL83XX_SPI_SFCSR_CSB1) & RTL83XX_SPI_SFCSR_LEN_MASK;
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, init, true);
 
 	/* CS bitfield is active low, so reversed logic */
 	if (rtnor->cs == 0)
-		ret = RTL8XXX_SPI_SFCSR_LEN1 | RTL8XXX_SPI_SFCSR_CSB1;
+		ret = RTL83XX_SPI_SFCSR_LEN1 | RTL83XX_SPI_SFCSR_CSB1;
 	else
-		ret = RTL8XXX_SPI_SFCSR_LEN1 | RTL8XXX_SPI_SFCSR_CSB0 | RTL8XXX_SPI_SFCSR_CS;
+		ret = RTL83XX_SPI_SFCSR_LEN1 | RTL83XX_SPI_SFCSR_CSB0 | RTL83XX_SPI_SFCSR_CS;
 
 	return ret;
 }
@@ -63,13 +56,13 @@ static int rtl83xx_nor_read_reg(struct spi_nor *nor, u8 opcode, u8 *buf, size_t 
 	uint32_t sfcsr;
 
 	sfcsr = spi_prep(rtnor);
-	sfcsr &= RTL8XXX_SPI_SFCSR_LEN_MASK | RTL8XXX_SPI_SFCSR_LEN1;
+	sfcsr &= RTL83XX_SPI_SFCSR_LEN_MASK | RTL83XX_SPI_SFCSR_LEN1;
 
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr, true);
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFDR, opcode << 24, true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr, true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFDR, opcode << 24, true);
 
 	while (len > 0) {
-		*(buf) = rtl83xx_read(rtnor, RTL8XXX_SPI_SFDR, true) >> 24;
+		*(buf) = rtl83xx_read(rtnor, RTL83XX_SPI_SFDR, true) >> 24;
 		buf++;
 		len--;
 	}
@@ -87,21 +80,21 @@ static int rtl83xx_nor_write_reg(struct spi_nor *nor, u8 opcode, const u8 *buf,
 	sfdr = opcode << 24;
 
 	if (len == 0) {
-		len_bits = RTL8XXX_SPI_SFCSR_LEN1;
+		len_bits = RTL83XX_SPI_SFCSR_LEN1;
 	} else if (len == 1) {
 		sfdr |= buf[0] << 16;
-		len_bits = RTL8XXX_SPI_SFCSR_LEN2;
+		len_bits = RTL83XX_SPI_SFCSR_LEN2;
 	} else if (len == 2) {
 		sfdr |= buf[0] << 16;
 		sfdr |= buf[1] << 8;
-		len_bits = RTL8XXX_SPI_SFCSR_LEN3;
+		len_bits = RTL83XX_SPI_SFCSR_LEN3;
 	} else {
 		return -EINVAL;
 	}
 	sfcsr |= len_bits;
 
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr, true);
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFDR, sfdr, true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr, true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFDR, sfdr, true);
 
 	return 0;
 }
@@ -122,35 +115,35 @@ static ssize_t rtl83xx_nor_read(struct spi_nor *nor, loff_t from, size_t len,
 	}
 
 	sfcsr = spi_prep(rtnor);
-	sfcsr &= RTL8XXX_SPI_SFCSR_LEN_MASK;
+	sfcsr &= RTL83XX_SPI_SFCSR_LEN_MASK;
 
 	/* Send read command */
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr | RTL8XXX_SPI_SFCSR_LEN1, true);
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFDR, rtnor->nor.read_opcode << 24, false);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr | RTL83XX_SPI_SFCSR_LEN1, true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFDR, rtnor->nor.read_opcode << 24, false);
 
 	/* Send address */
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr | (sfcsr_addrlen_bits << 28), true);
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFDR, from, false);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr | (sfcsr_addrlen_bits << 28), true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFDR, from, false);
 
 	/* Dummy cycles */
 	for (i = 0; i < nor->read_dummy / 8; i++) {
-		rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr, true);
-		rtl83xx_write(rtnor, RTL8XXX_SPI_SFDR, 0, false);
+		rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr, true);
+		rtl83xx_write(rtnor, RTL83XX_SPI_SFDR, 0, false);
 	}
 
 	/* Read 4 bytes at a time */
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr | RTL8XXX_SPI_SFCSR_LEN4, true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr | RTL83XX_SPI_SFCSR_LEN4, true);
 	while (len >= 4){
-		*((uint32_t*) buf) = rtl83xx_read(rtnor, RTL8XXX_SPI_SFDR, false);
+		*((uint32_t*) buf) = rtl83xx_read(rtnor, RTL83XX_SPI_SFDR, false);
 		buf += 4;
 		len -= 4;
 		ret += 4;
 	}
 
 	/* Read remainder 1 byte at a time */
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr | RTL8XXX_SPI_SFCSR_LEN1, true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr | RTL83XX_SPI_SFCSR_LEN1, true);
 	while (len > 0) {
-		*(buf) = rtl83xx_read(rtnor, RTL8XXX_SPI_SFDR, false) >> 24;
+		*(buf) = rtl83xx_read(rtnor, RTL83XX_SPI_SFDR, false) >> 24;
 		buf++;
 		len--;
 		ret++;
@@ -175,29 +168,29 @@ static ssize_t rtl83xx_nor_write(struct spi_nor *nor, loff_t to, size_t len,
 	}
 
 	sfcsr = spi_prep(rtnor);
-	sfcsr &= RTL8XXX_SPI_SFCSR_LEN_MASK;
+	sfcsr &= RTL83XX_SPI_SFCSR_LEN_MASK;
 
 	/* Send write command */
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr | RTL8XXX_SPI_SFCSR_LEN1, true);
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFDR, nor->program_opcode << 24, false);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr | RTL83XX_SPI_SFCSR_LEN1, true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFDR, nor->program_opcode << 24, false);
 
 	/* Send address */
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr | (sfcsr_addrlen_bits << 28), true);
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFDR, to, false);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr | (sfcsr_addrlen_bits << 28), true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFDR, to, false);
 
 	/* Write 4 bytes at a time */
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr | RTL8XXX_SPI_SFCSR_LEN4, true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr | RTL83XX_SPI_SFCSR_LEN4, true);
 	while (len >= 4) {
-		rtl83xx_write(rtnor, RTL8XXX_SPI_SFDR, *((uint32_t*)buf), true);
+		rtl83xx_write(rtnor, RTL83XX_SPI_SFDR, *((uint32_t*)buf), true);
 		buf += 4;
 		len -= 4;
 		ret += 4;
 	}
 
 	/* Write remainder 1 byte at a time */
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr | RTL8XXX_SPI_SFCSR_LEN1, true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr | RTL83XX_SPI_SFCSR_LEN1, true);
 	while (len > 0) {
-		rtl83xx_write(rtnor, RTL8XXX_SPI_SFDR, *buf << 24, true);
+		rtl83xx_write(rtnor, RTL83XX_SPI_SFDR, *buf << 24, true);
 		buf++;
 		len--;
 		ret++;
@@ -222,12 +215,12 @@ static int rtl83xx_erase(struct spi_nor *nor, loff_t offset)
 	sfcsr = spi_prep(rtnor);
 
 	/* Send erase command */
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr | RTL8XXX_SPI_SFCSR_LEN1, true);
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFDR, nor->erase_opcode << 24, false);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr | RTL83XX_SPI_SFCSR_LEN1, true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFDR, nor->erase_opcode << 24, false);
 
 	/* Send address */
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCSR, sfcsr | (sfcsr_addrlen_bits << 28), true);
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFDR, offset, false);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCSR, sfcsr | (sfcsr_addrlen_bits << 28), true);
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFDR, offset, false);
 
 	return 0;
 }
@@ -250,9 +243,9 @@ static int rtl83xx_spi_nor_scan(struct spi_nor *nor)
 	int ret;
 
 	/* Turn on big-endian byte ordering */
-	sfcr = rtl83xx_read(rtnor, RTL8XXX_SPI_SFCR, true);
-	sfcr |= RTL8XXX_SPI_SFCR_RBO | RTL8XXX_SPI_SFCR_WBO;
-	rtl83xx_write(rtnor, RTL8XXX_SPI_SFCR, sfcr, true);
+	sfcr = rtl83xx_read(rtnor, RTL83XX_SPI_SFCR, true);
+	sfcr |= RTL83XX_SPI_SFCR_RBO | RTL83XX_SPI_SFCR_WBO;
+	rtl83xx_write(rtnor, RTL83XX_SPI_SFCR, sfcr, true);
 
 	ret = spi_nor_scan(nor, NULL, &hwcaps);
 
