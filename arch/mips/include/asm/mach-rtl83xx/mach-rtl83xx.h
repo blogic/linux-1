@@ -22,10 +22,10 @@ struct rtl83xx_soc_info {
 #define RTL8330_FAMILY_ID	0x8330
 
 /* Register access macros */
-#define rtl83xx_r8(reg)		__raw_readb(reg)
-#define rtl83xx_w8(val, reg)	__raw_writeb(val, reg)
-#define rtl83xx_r32(reg)	__raw_readl(reg)
-#define rtl83xx_w32(val, reg)	__raw_writel(val, reg)
+#define rtl83xx_r8(reg)		readb(reg)
+#define rtl83xx_w8(val, reg)	writeb(val, reg)
+#define rtl83xx_r32(reg)	readl(reg)
+#define rtl83xx_w32(val, reg)	writel(val, reg)
 
 /* Interrupt numbers/bits */
 #define RTL83XX_IRQ_UART0		31
