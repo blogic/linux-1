@@ -1,35 +1,30 @@
 // SPDX-License-Identifier: GPL-2.0-only
-
 /*
- * Setup for the Realtek RTL83XX SoC series:
- *	Memory, Timer and Serial
- *
- * Copyright (C) 2020 B. Koblitz
- * based on the original BSP by
- * Copyright (C) 2006-2012 Tony Wu (tonywu@realtek.com)
- *
+ * Copyright (C) 2006-2012 Tony Wu <tonywu@realtek.com>
+ * Copyright (C) 2020 Birger Koblitz <mail@birger-koblitz.de>
+ * Copyright (C) 2020 Bert Vermeulen <bert@biot.com>
+ * Copyright (C) 2020 John Crispin <john@phrozen.org>
  */
 
 #include <linux/of_fdt.h>
 #include <asm/reboot.h>
 #include <asm/time.h>
-#include <mach-rtl83xx.h>
+#include <mach-realtek.h>
 
-extern struct rtl83xx_soc_info soc_info;
+extern struct realtek_soc_info soc_info;
 
-
-static void rtl83xx_restart(char *command)
+static void realtek_restart(char *command)
 {
 	if (soc_info.family == RTL8380_FAMILY_ID) {
 		/* Reset Global Control1 Register */
-		rtl83xx_w32(1, RTL838X_RST_GLB_CTRL_1);
+		writel(1, RTL838X_RST_GLB_CTRL_1);
 	} else if (soc_info.family == RTL8390_FAMILY_ID) {
 		/* If calling reset vector fails, reset entire chip */
-		rtl83xx_w32(0xFFFFFFFF, RTL839X_RST_GLB_CTRL);
+		writel(0xFFFFFFFF, RTL839X_RST_GLB_CTRL);
 	}
 }
 
-static void rtl83xx_halt(void)
+static void realtek_halt(void)
 {
 	printk("System halted.\n");
 	while(1);
@@ -39,8 +34,8 @@ void __init plat_mem_setup(void)
 {
 	set_io_port_base(KSEG1);
 
-	_machine_restart = rtl83xx_restart;
-	_machine_halt = rtl83xx_halt;
+	_machine_restart = realtek_restart;
+	_machine_halt = realtek_halt;
 }
 
 void __init plat_time_init(void)
