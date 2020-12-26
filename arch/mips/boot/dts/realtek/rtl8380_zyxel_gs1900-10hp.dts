@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/dts-v1/;
+
+#include "rtl83xx.dtsi"
+#include "rtl838x.dtsi"
+
+/ {
+	compatible = "zyxel,gs1900-10hp", "realtek,rtl8380-soc";
+	model = "Zyxel GS1900-10HP Switch";
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+		bootargs = "earlycon console=ttyS0,115200";
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x8000000>;
+	};
+};
+
+&uart0 {
+	status = "okay";
+};

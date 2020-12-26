@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
+
+/ {
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@0 {
+			compatible = "mips,mips4KEc";
+			reg = <0>;
+			clocks = <&baseclk 0>;
+			clock-names = "cpu";
+		};
+	};
+
+	baseclk: baseclk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <500000000>;
+	};
+};
+
+&switch_bus {
+	syscon@40 {
+		compatible = "syscon", "simple-mfd";
+		reg = <0x40 0x4>;
+
+		sysreset: sysreset@0 {
+			compatible = "syscon-reboot";
+			offset = <0x0>;
+			mask = <0x1>;
+		};
+
+	};
+
+	chipid@d0 {
+		compatible = "realtek,rtl8380-chipid";
+		reg = <0xd0 0x10>;
+	};
+};

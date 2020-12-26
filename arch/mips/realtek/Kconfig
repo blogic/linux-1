@@ -1,0 +1,11 @@
+if MACH_REALTEK
+choice
+       prompt "Realtek RTL838x/RTL839x-based switch"
+       optional
+
+       config DT_CISCO_SG220_26
+               bool "Cisco SG220-26"
+       config DT_ZYXEL_GS1900_10HP
+               bool "Zyxel GS1900-10HP"
+endchoice
+endif
