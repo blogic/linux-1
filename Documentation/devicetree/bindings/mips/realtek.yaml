@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: GPL-2.0
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/mips/realtek.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Realtek MIPS SoC based Platforms Device Tree Bindings
+
+maintainers:
+  - Birger Koblitz <mail@birger-koblitz.de>
+  - Bert Vermeulen <bert@biot.com>
+  - John Crispin <john@phrozen.org>
+
+description: |
+  Boards with a MediaTek SoC shall have the following properties.
+
+properties:
+  $nodename:
+    const: '/'
+  compatible:
+    oneOf:
+      - description: Cisco SG220-26
+        items:
+          - const: cisco,sg220-26
+          - const: realtek,rtl8380-soc
+      - description: Cisco SG220-26
+        items:
+          - const: zyxel,gs1900-10hp
+          - const: realtek,rtl8380-soc
+
+additionalProperties: true
+
+...
